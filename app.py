@@ -141,14 +141,15 @@ with tab1:
 
         with st.spinner("Running Genetic Algorithm..."):
             # ── GA Parameters ──
-            POP_SIZE, N_GEN, MUTATION_RATE = 60, 50, 0.15
+            POP_SIZE, N_GEN, MUTATION_RATE = 40,30, 0.15
             COAL_MIN, COAL_MAX = 1000, 2500
             RPM_MIN, RPM_MAX  = 0.5, 2.5
 
-            def predict_grade(coal, rpm):
-                inp = pd.DataFrame([[coal, rpm, moist, ftemp]],
-                                   columns=['Coal_Rate','RPM','Moisture','Feed_Temp'])
-                return ai_model.predict(inp)[0]
+            def predict_grade_batch(population):
+                df = pd.DataFrame(population, columns=['Coal_Rate', 'RPM'])
+                df['Moisture'] = moist
+                df['Feed_Temp'] = ftemp
+                return ai_model.predict(df[['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp']])
 
             # Initialise population
             pop = np.column_stack([
@@ -160,7 +161,7 @@ with tab1:
             best_ind, best_grade = pop[0], -np.inf
 
             for gen in range(N_GEN):
-                fitness = np.array([predict_grade(c, r) for c, r in pop])
+                fitness = predict_grade_batch(pop)
                 best_idx = np.argmax(fitness)
                 gen_best = fitness[best_idx]
                 best_per_gen.append(gen_best)
