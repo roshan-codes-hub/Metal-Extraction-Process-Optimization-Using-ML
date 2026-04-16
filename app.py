@@ -227,7 +227,15 @@ with tab1:
         ax2 = fig.add_subplot(gs[1])
         coal_grid = np.linspace(COAL_MIN, COAL_MAX, 40)
         rpm_grid  = np.linspace(RPM_MIN,  RPM_MAX,  40)
-        Z = np.array([[predict_grade(c, r) for c in coal_grid] for r in rpm_grid])
+        Z = np.zeros((len(rpm_grid), len(coal_grid)))
+        for i, r in enumerate(rpm_grid):
+            batch = pd.DataFrame({
+                'Coal_Rate': coal_grid,
+                'RPM': r,
+                'Moisture': moist,
+                'Feed_Temp': ftemp
+            })
+            Z[i] = ai_model.predict(batch)
         im = ax2.contourf(coal_grid, rpm_grid, Z, levels=20, cmap='RdYlGn')
         fig.colorbar(im, ax=ax2, label='Predicted Nickel Grade (%)').ax.yaxis.label.set_color('white')
         ax2.scatter(opt_coal_ga, opt_rpm_ga, marker='*', s=200, color='royalblue', zorder=5, label='GA Optimum')
@@ -238,8 +246,21 @@ with tab1:
         # Plot 3 – Sensitivity Analysis
         ax3 = fig.add_subplot(gs[2])
         deviations = np.linspace(-30, 30, 60)
-        sens_coal = [predict_grade(opt_coal_ga * (1 + d/100), opt_rpm_ga)  for d in deviations]
-        sens_rpm  = [predict_grade(opt_coal_ga, opt_rpm_ga  * (1 + d/100)) for d in deviations]
+        batch_coal = pd.DataFrame({
+            'Coal_Rate': [opt_coal_ga * (1 + d/100) for d in deviations],
+            'RPM': opt_rpm_ga,
+            'Moisture': moist,
+            'Feed_Temp': ftemp
+        })
+        sens_coal = ai_model.predict(batch_coal)
+        
+        batch_rpm = pd.DataFrame({
+            'Coal_Rate': opt_coal_ga,
+            'RPM': [opt_rpm_ga * (1 + d/100) for d in deviations],
+            'Moisture': moist,
+            'Feed_Temp': ftemp
+        })
+        sens_rpm = ai_model.predict(batch_rpm)
         ax3.plot(deviations, sens_coal, color='royalblue',  lw=2,      label='Coal Rate ±%')
         ax3.plot(deviations, sens_rpm,  color='salmon',     lw=2, linestyle='--', label='Kiln RPM ±%')
         ax3.axhline(opt_grade_ga, color='limegreen', linestyle=':', lw=1.5, label=f'Optimum ({opt_grade_ga:.1f}%)')
