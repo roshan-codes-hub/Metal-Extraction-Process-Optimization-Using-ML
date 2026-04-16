@@ -258,7 +258,7 @@ with tab2:
         import matplotlib.pyplot as plt
 
         try:
-            df_plot = pd.read_csv('kiln_training_data2.csv')
+            df_plot = pd.read_csv('kiln_training_data.csv')
             features = ['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp']
 
             fig, axes = plt.subplots(1, 4, figsize=(16, 4), facecolor='#0e1117')
