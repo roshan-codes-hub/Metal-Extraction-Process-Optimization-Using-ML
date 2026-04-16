@@ -28,7 +28,7 @@ st.markdown("""
 def load_and_train_model():
     try:
         # Update filename to match your repo exactly
-        df = pd.read_csv('kiln_training_data2.csv') 
+        df = pd.read_csv('kiln_training_data.csv') 
         X = df[['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp']]
         y = df['Nickel_Grade']
         
