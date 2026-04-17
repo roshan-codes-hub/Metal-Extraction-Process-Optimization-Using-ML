@@ -5,9 +5,8 @@ from scipy.optimize import dual_annealing
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error
 
-# ══════════════════════════════════════════════════════
-# 1. PAGE CONFIGURATION & CUSTOM STYLING
-# ══════════════════════════════════════════════════════
+ # PAGE CONFIGURATION & CUSTOM STYLING
+
 st.set_page_config(page_title="Ni-Kiln AI Optimizer", layout="wide", page_icon="🏭")
 
 # Custom CSS for a modern "Dark Industrial" look
@@ -21,13 +20,11 @@ st.markdown("""
     </style>
     """,  unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════
 # 2. DATA & MODEL LOADING (WITH ERROR HANDLING)
-# ══════════════════════════════════════════════════════
+
 @st.cache_resource
 def load_and_train_model():
     try:
-        # Update filename to match your repo exactly
         df = pd.read_csv('kiln_training_data.csv') 
         X = df[['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp']]
         y = df['Nickel_Grade']
@@ -47,9 +44,8 @@ def load_and_train_model():
 
 ai_model, r2_val, mae_val, error_msg = load_and_train_model()
 
-# ══════════════════════════════════════════════════════
 # 3. HEADER SECTION
-# ══════════════════════════════════════════════════════
+
 st.title("🏭 Rotary Kiln: Prescriptive AI Controller")
 st.markdown("---")
 
@@ -66,11 +62,11 @@ with col_acc2:
 with col_acc3:
     st.metric("Status", "Operational" if r2_val > 0.9 else "Calibrating")
 
-st.markdown("###") # Spacer
+st.markdown("###") 
 
-# ══════════════════════════════════════════════════════
+
 # 4. CONTROL ROOM (INPUTS & SIMULATION)
-# ══════════════════════════════════════════════════════
+
 left_col, right_col = st.columns([1, 2], gap="large")
 
 with left_col:
@@ -90,16 +86,16 @@ with right_col:
     
     if run_opt:
         # Optimization Logic
+        base = np.array([[0, 0, moist, ftemp]])
+        
         def objective(u):
-            coal, rpm = u
-            input_df = pd.DataFrame([[coal, rpm, moist, ftemp]], 
-                                   columns=['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp'])
-            pred = ai_model.predict(input_df)[0]
-            # Quadratic Error + Efficiency Penalty (Small coal bias)
-            return (pred - target)**2 + (0.001 * coal)
+            base[0, 0] = u[0]  # coal
+            base[0, 1] = u[1]  # rpm
+            pred = ai_model.predict(base)[0]
+            return (pred - target)**2 + (0.001 * u[0])
 
         with st.spinner("Analyzing Thermodynamics..."):
-            res = dual_annealing(objective, bounds=[(1000, 2500), (0.5, 2.5)], maxiter=40)
+            res = dual_annealing(objective, bounds=[(1000, 2500), (0.5, 2.5)], maxiter=20, seed=42)
             opt_coal, opt_rpm = res.x
             
             # Final Prediction for confirmation
@@ -125,9 +121,9 @@ with right_col:
         st.info("Awaiting sensor data... Click 'Optimize Set-points' to generate the control plan.")
 
 
-# ══════════════════════════════════════════════════════
+
 # 6. ANALYTICS & INSIGHTS SECTION
-# ══════════════════════════════════════════════════════
+
 st.markdown("---")
 st.subheader("📊 Analytics & Insights")
 
