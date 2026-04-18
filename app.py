@@ -24,27 +24,16 @@ st.markdown("""
 # 2. DATA & MODEL LOADING (WITH ERROR HANDLING)
 
 @st.cache_resource
-def load_and_train_model():
+def load_model():
     try:
-        df = pd.read_csv('kiln_training_data.csv') 
-        X = df[['Coal_Rate', 'RPM', 'Moisture', 'Feed_Temp']]
-        y = df['Nickel_Grade']
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        model = xgb.XGBRegressor(n_estimators=150, learning_rate=0.08, max_depth=5)
-        model.fit(X_train, y_train)
-        
-        preds = model.predict(X_test)
-        r2 = r2_score(y_test, preds)
-        mae = mean_absolute_error(y_test, preds)
-        
-        return model, r2, mae, None
+        import pickle
+        with open('model_bundle.pkl', 'rb') as f:
+            bundle = pickle.load(f)
+        return bundle['model'], bundle['r2'], bundle['mae'], None
     except Exception as e:
         return None, 0, 0, str(e)
 
-ai_model, r2_val, mae_val, error_msg = load_and_train_model()
-
+ai_model, r2_val, mae_val, error_msg = load_model()
 # 3. HEADER SECTION
 
 st.title("🏭 Rotary Kiln: Prescriptive AI Controller")
