@@ -19,5 +19,4 @@ To run this application locally on your machine, ensure you have Python installe
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/yourusername/kiln-optimization.git](https://github.com/yourusername/kiln-optimization.git)
-   cd kiln-optimization
+   git clone [https://github.com/roshan-codes-hub/Metal-Extraction-Process-Optimization-Using-ML.git](https://github.com/roshan-codes-hub/Metal-Extraction-Process-Optimization-Using-ML.git)
